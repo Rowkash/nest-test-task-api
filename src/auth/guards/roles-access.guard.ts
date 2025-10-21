@@ -14,10 +14,12 @@ export class RolesAccessGuard implements CanActivate {
       this.reflector.get<UserRoleEnum[]>(ROLES_KEY, context.getHandler()) ||
       this.reflector.get<UserRoleEnum[]>(ROLES_KEY, context.getClass())
 
-    if (!roles) {return false}
+    if (!roles) {
+      return false
+    }
     const request = context.switchToHttp().getRequest()
     const user = request.user as IRequestUser
 
-    return user.role != null && roles.includes(user.role)
+    return user.role && roles.includes(user.role)
   }
 }

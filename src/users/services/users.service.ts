@@ -1,7 +1,6 @@
 import { verify } from 'argon2'
 import {
   BadRequestException,
-  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -41,20 +40,15 @@ export class UsersService {
   async update(data: IUserDataUpdate) {
     const { id, ...updateData } = data
     const filter = this.getFilter({ id })
-    const result = await this.database
-      .update(schema.users)
-      .set(updateData)
-      .where(filter)
-
-    if (result[0] === 0) {throw new ForbiddenException('Permission error')}
-
-    return
+    await this.database.update(schema.users).set(updateData).where(filter)
   }
 
   async remove({ id, password }: IUserDataRemoving) {
     const user = await this.getOne({ id })
     const verifyPass = await verify(user.password, password)
-    if (!verifyPass) {throw new BadRequestException('Wrong password')}
+    if (!verifyPass) {
+      throw new BadRequestException('Wrong password')
+    }
     await this.database.delete(schema.users).where(eq(schema.users.id, id))
     await this.sessionsService.removeAllSessionsByUser(user.id)
   }
@@ -62,7 +56,9 @@ export class UsersService {
   async getOne(options: IGetOneUserOptions) {
     const filter = this.getFilter(options)
     const [user] = await this.database.select().from(schema.users).where(filter)
-    if (!user) {throw new NotFoundException('User not found')}
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
     return user
   }
 
@@ -95,23 +91,25 @@ export class UsersService {
       .select()
       .from(schema.users)
       .where(eq(schema.users.email, email))
-    if (user) {throw new BadRequestException('User email already exist')}
-    return
+    if (user) {
+      throw new BadRequestException('User email already exist')
+    }
   }
 
   getFilter(options: IGetUserFilterOptions): SQL | undefined {
     const filter: (SQL | undefined)[] = []
 
-    if (options.id != null) {filter.push(eq(schema.users.id, options.id))}
-    if (options.email != null)
-      {filter.push(eq(schema.users.email, options.email))}
-    if (options.name != null)
-      {filter.push(like(schema.users.name, `%${options.name}%`))}
-    if (options.status != null)
-      {filter.push(eq(schema.users.status, options.status))}
-
-    if (options.status && options.name) {
-      console.log(and(...filter))
+    if (options.id) {
+      filter.push(eq(schema.users.id, options.id))
+    }
+    if (options.email) {
+      filter.push(eq(schema.users.email, options.email))
+    }
+    if (options.name) {
+      filter.push(like(schema.users.name, `%${options.name}%`))
+    }
+    if (options.status) {
+      filter.push(eq(schema.users.status, options.status))
     }
 
     return filter.length === 1 ? filter[0] : and(...filter)

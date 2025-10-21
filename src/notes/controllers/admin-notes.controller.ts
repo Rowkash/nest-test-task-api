@@ -29,7 +29,7 @@ export class AdminNotesController {
   @ZodResponse({ type: NoteResponseDto })
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) noteId: number) {
-    return await this.notesService.getOne({ id: noteId })
+    return this.notesService.getOne({ id: noteId })
   }
 
   @ApiOperation({ summary: 'Get notes page' })

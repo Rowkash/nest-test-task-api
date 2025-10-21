@@ -10,7 +10,6 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common'
 
@@ -19,14 +18,12 @@ import { AuthGuard } from '@/auth/guards/auth.guard'
 import { UserRoleEnum } from '@/users/enums/user-role.enum'
 import { RolesAccessGuard } from '@/auth/guards/roles-access.guard'
 import { RolesAccess } from '@/auth/decorators/roles-access.decorator'
-import {
-  ICustomRequest,
-  IRequestUser,
-} from '@/common/interfaces/custom-request.interface'
+import { IRequestUser } from '@/common/interfaces/custom-request.interface'
 import { CreateNoteDto } from '@/notes/dto/create-note.dto'
 import { NoteResponseDto } from '@/notes/dto/response-note.dto'
 import { NotesPageDto, NotesPageResponseDto } from '@/notes/dto/notes-page.dto'
 import { UpdateNoteDto } from '@/notes/dto/update-note.dto'
+import { User } from '@/common/decorators/user.decorator'
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard, RolesAccessGuard)
@@ -41,41 +38,37 @@ export class NotesController {
   })
   @ZodResponse({ type: NoteResponseDto })
   @Post()
-  async create(@Req() { user }: ICustomRequest, @Body() dto: CreateNoteDto) {
-    const { id } = user as IRequestUser
-    return await this.notesService.create({ ...dto, authorId: id })
+  async create(@User() user: IRequestUser, @Body() dto: CreateNoteDto) {
+    return this.notesService.create({ ...dto, authorId: user.id })
   }
 
   @ApiOperation({ summary: 'Update user note by id' })
   @Patch(':id')
   async update(
-    @Req() { user }: ICustomRequest,
+    @User() user: IRequestUser,
     @Param('id', ParseIntPipe) noteId: number,
     @Body() dto: UpdateNoteDto,
   ) {
-    const { id } = user as IRequestUser
-    await this.notesService.update({ id: noteId, userId: id, ...dto })
+    await this.notesService.update({ id: noteId, userId: user.id, ...dto })
   }
 
   @ApiOperation({ summary: 'Return user`s note by id' })
   @ZodResponse({ type: NoteResponseDto })
   @Get(':id')
   async findOne(
-    @Req() { user }: ICustomRequest,
+    @User() user: IRequestUser,
     @Param('id', ParseIntPipe) noteId: number,
   ) {
-    const { id } = user as IRequestUser
-    return await this.notesService.getOne({ id: noteId, authorId: id })
+    return this.notesService.getOne({ id: noteId, authorId: user.id })
   }
 
   @ApiOperation({ summary: 'Get user`s notes page' })
   @ZodResponse({ type: NotesPageResponseDto })
   @Get()
-  async getPage(@Req() { user }: ICustomRequest, @Query() query: NotesPageDto) {
-    const { id } = user as IRequestUser
+  async getPage(@User() user: IRequestUser, @Query() query: NotesPageDto) {
     const { models, count } = await this.notesService.getPage({
       ...query,
-      authorId: id,
+      authorId: user.id,
     })
 
     return { models, count }
@@ -84,10 +77,9 @@ export class NotesController {
   @ApiOperation({ summary: 'Delete note' })
   @Delete(':id')
   async remove(
-    @Req() { user }: ICustomRequest,
+    @User() user: IRequestUser,
     @Param('id', ParseIntPipe) noteId: number,
   ) {
-    const { id } = user as IRequestUser
-    await this.notesService.remove({ id: noteId, userId: id })
+    await this.notesService.remove({ id: noteId, userId: user.id })
   }
 }

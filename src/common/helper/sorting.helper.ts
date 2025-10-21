@@ -13,9 +13,8 @@ export class SortingDbHelper<T extends Table> {
 
   get orderBy() {
     const column = this.table[this.sortBy as keyof T] as AnyColumn | undefined
-    const sortField = column
-      ? column
-      : (this.table['created_at' as keyof T] as AnyColumn)
+    const sortField =
+      column ?? (this.table['created_at' as keyof T] as AnyColumn)
     return this.orderSort === 'asc' ? asc(sortField) : desc(sortField)
   }
 }

@@ -89,13 +89,13 @@ export class NotesService {
   getFilter(options: IGetNoteFilterOptions) {
     const filter: (SQL | undefined)[] = []
 
-    if (options.id != null) {
+    if (options.id) {
       filter.push(eq(schema.notes.id, options.id))
     }
-    if (options.authorId != null) {
+    if (options.authorId) {
       filter.push(eq(schema.notes.authorId, options.authorId))
     }
-    if (options.title != null) {
+    if (options.title) {
       filter.push(like(schema.notes.title, `%${options.title}%`))
     }
 

@@ -32,7 +32,7 @@ export class AuthMiddleware implements NestMiddleware {
 
       request.user = payload
       return next()
-    } catch (error) {
+    } catch {
       throw new BadRequestException('Invalid access token')
     }
   }

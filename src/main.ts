@@ -3,11 +3,12 @@ import { ConfigService } from '@nestjs/config'
 import { cleanupOpenApiDoc } from 'nestjs-zod'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import * as cookieParser from 'cookie-parser'
 
 import { AppModule } from '@/app.module'
 import { ZodValidationExceptionFilter } from '@/common/filters/zod.exception.filter'
 
-function setupSwagger(app: NestExpressApplication) {
+const setupSwagger = (app: NestExpressApplication) => {
   const options = new DocumentBuilder()
     .setTitle('Api')
     .setDescription('API docs')
@@ -24,7 +25,7 @@ function setupSwagger(app: NestExpressApplication) {
   })
 }
 
-async function bootstrap() {
+const bootstrap = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
   const configService = app.get<ConfigService>(ConfigService)
@@ -32,9 +33,10 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api')
   app.useGlobalFilters(new ZodValidationExceptionFilter())
+  app.use(cookieParser())
 
   setupSwagger(app)
   await app.listen(PORT)
 }
 
-void bootstrap()
+bootstrap()

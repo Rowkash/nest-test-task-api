@@ -23,11 +23,11 @@ export class SessionsService {
 
   async findUserSessionList(userId: number) {
     const key = this.getSessionKey(userId)
-    return await this.cacheManager.get<string[]>(key)
+    return this.cacheManager.get<string[]>(key)
   }
 
   async findByKey(key: string) {
-    return await this.cacheManager.get<ISessionData>(key)
+    return this.cacheManager.get<ISessionData>(key)
   }
 
   async updateUserSessionsList(data: IUpdateUserSessionsListData) {
@@ -41,16 +41,16 @@ export class SessionsService {
 
   async remove(key: string) {
     const session = await this.findByKey(key)
-    if (!session) {return}
+    if (!session) {
+      return
+    }
     const sessions = await this.findUserSessionList(session.userId)
     if (sessions && sessions?.length > 0) {
       const sessionsKey = this.getSessionKey(session.userId)
       const filterSessions = sessions.filter(session => session !== key)
-      if (filterSessions.length == 0) {
-        await this.cacheManager.del(sessionsKey)
-      } else {
-        await this.cacheManager.set(sessionsKey, filterSessions)
-      }
+      await (filterSessions.length === 0
+        ? this.cacheManager.del(sessionsKey)
+        : this.cacheManager.set(sessionsKey, filterSessions))
     }
     await this.cacheManager.del(key)
   }
@@ -62,7 +62,6 @@ export class SessionsService {
       const sessionsListKey = this.getSessionKey(userId)
       await this.cacheManager.del(sessionsListKey)
     }
-    return
   }
 
   private getSessionKey(userId: number) {

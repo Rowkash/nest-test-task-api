@@ -35,7 +35,7 @@ export class AdminUsersController {
   @ZodResponse({ type: AdminUserResponseDto })
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    return await this.usersService.getOne({ id })
+    return this.usersService.getOne({ id })
   }
 
   @ApiOperation({ summary: 'Update user' })

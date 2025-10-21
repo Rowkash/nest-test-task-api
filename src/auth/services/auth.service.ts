@@ -42,33 +42,35 @@ export class AuthService {
     const { accessToken, refreshToken } = this.generateTokens(user)
     const userSessions = await this.sessionsService.findUserSessionList(user.id)
 
-    if (userSessions && userSessions.length > 0) {
-      await this.sessionsService.updateUserSessionsList({
-        sessions: userSessions,
-        cacheData: { user, refreshToken },
-      })
-    } else {
-      await this.sessionsService.create({ user, refreshToken })
+    await (userSessions && userSessions.length > 0
+      ? this.sessionsService.updateUserSessionsList({
+          sessions: userSessions,
+          cacheData: { user, refreshToken },
+        })
+      : this.sessionsService.create({ user, refreshToken }))
+    if (sessionId) {
+      await this.sessionsService.remove(sessionId)
     }
-    if (sessionId) {await this.sessionsService.remove(sessionId)}
 
     return { accessToken, refreshToken }
   }
 
   async refreshTokens(sessionId: string) {
     const session = await this.sessionsService.findByKey(sessionId)
-    if (!session)
-      {throw new UnauthorizedException('Refresh token expired or its invalid')}
+    if (!session) {
+      throw new UnauthorizedException('Refresh token expired or its invalid')
+    }
     const userData = { id: session.userId, email: session.email }
     const { accessToken, refreshToken } = this.generateTokens(userData)
     const userSessions = await this.sessionsService.findUserSessionList(
       userData.id,
     )
-    if (userSessions && userSessions.length > 0)
-      {await this.sessionsService.updateUserSessionsList({
+    if (userSessions && userSessions.length > 0) {
+      await this.sessionsService.updateUserSessionsList({
         sessions: userSessions,
         cacheData: { user: userData, refreshToken },
-      })}
+      })
+    }
     await this.sessionsService.remove(sessionId)
 
     return { accessToken, refreshToken }
@@ -76,8 +78,9 @@ export class AuthService {
 
   async logout(sessionId: string) {
     const session = await this.sessionsService.findByKey(sessionId)
-    if (!session)
-      {throw new UnauthorizedException('Session not found or expired')}
+    if (!session) {
+      throw new UnauthorizedException('Session not found or expired')
+    }
     await this.sessionsService.remove(sessionId)
   }
 
@@ -88,9 +91,8 @@ export class AuthService {
       role: user.role,
     }
     const secret = this.configService.get<string>('auth.jwtSecret')
-    const expiresIn = this.configService.get<string>('auth.jwtExpires')
+    const expiresIn = this.configService.get('auth.jwtExpires')
 
-    // @ts-ignore
     const accessToken = this.jwtService.sign(data, {
       secret,
       expiresIn,
@@ -107,7 +109,9 @@ export class AuthService {
     })
     if (user) {
       const passEquals = await verify(user.password, dto.password)
-      if (passEquals) {return user}
+      if (passEquals) {
+        return user
+      }
     }
 
     throw new BadRequestException({ message: 'Wrong email or password' })

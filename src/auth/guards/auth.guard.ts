@@ -14,7 +14,9 @@ export class AuthGuard implements CanActivate {
   canActivate(context: ExecutionContext) {
     const request: ICustomRequest = context.switchToHttp().getRequest()
     const { user } = request
-    if (!user) {throw new ForbiddenException('You are not logged in')}
+    if (!user) {
+      throw new ForbiddenException('You are not logged in')
+    }
 
     return true
   }

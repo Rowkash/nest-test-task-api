@@ -5,9 +5,8 @@ import {
   ExceptionFilter,
   HttpStatus,
 } from '@nestjs/common'
-import { ZodError } from 'zod'
+import { ZodError, z as zod } from 'zod'
 import { Response } from 'express'
-import { z as zod } from 'zod'
 
 @Catch(ZodValidationException)
 export class ZodValidationExceptionFilter implements ExceptionFilter {

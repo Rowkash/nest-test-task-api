@@ -61,8 +61,11 @@ export class AuthController {
     @Req() req: ICustomRequest,
     @Res({ passthrough: true }) res: Response,
   ) {
+    if (!req.cookies || !req.cookies?.refreshToken) {
+      throw new UnauthorizedException()
+    }
     const { refreshToken: sessionId } = req.cookies
-    if (!sessionId) {throw new UnauthorizedException()}
+
     await this.authService.logout(sessionId as string)
     res.clearCookie('refreshToken', {
       httpOnly: true,
@@ -84,8 +87,11 @@ export class AuthController {
     @Req() req: ICustomRequest,
     @Res({ passthrough: true }) res: Response,
   ) {
+    if (!req.cookies || !req.cookies?.refreshToken) {
+      throw new UnauthorizedException()
+    }
     const { refreshToken: sessionId } = req.cookies
-    if (!sessionId) {throw new UnauthorizedException()}
+
     const { accessToken, refreshToken } = await this.authService.refreshTokens(
       sessionId as string,
     )
